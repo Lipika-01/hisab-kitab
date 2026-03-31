@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Trip Summary — HisabKitab{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="greeting">⚖️ Settlement Summary</div>
+    <h1 class="page-title">{{ trip.trip_name }}</h1>
+    <p class="page-subtitle">Full breakdown — who paid, who owes, how to settle.</p>
+
+    <!-- STATS ROW -->
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="stat-label">Total Kharcha</div>
+            <div class="stat-value">₹{{ total_expense }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Members</div>
+            <div class="stat-value">{{ trip.member_count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Expenses Logged</div>
+            <div class="stat-value">{{ expenses | length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Per Person Share</div>
+            <div class="stat-value">
+                {% if trip.member_count > 0 %}
+                    ₹{{ (total_expense / trip.member_count) | round(2) }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ALL EXPENSES TABLE -->
+    <div class="section-title">All Trip Expenses</div>
+
+    {% if expenses %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Paid By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td style="text-align:left;font-weight:600;">{{ expense.title }}</td>
+                        <td><strong>₹{{ expense.amount }}</strong></td>
+                        <td><span class="badge badge-green">{{ expense.paid_by }}</span></td>
+                        <td>{{ expense.date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">No expenses logged yet.</div>
+    {% endif %}
+
+    <!-- MEMBER WISE SUMMARY -->
+    <div class="section-title">Member-wise Breakdown</div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Total Paid</th>
+                    <th>Fair Share</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in trip.members %}
+                <tr>
+                    <td style="font-weight:700;">{{ member }}</td>
+                    <td>₹{{ member_totals[member] }}</td>
+                    <td>₹{{ member_share[member] | round(2) }}</td>
+                    <td>
+                        {% if balances[member] > 0 %}
+                            <span class="settle-positive">Gets ₹{{ balances[member] }}</span>
+                        {% elif balances[member] < 0 %}
+                            <span class="settle-negative">Gives ₹{{ balances[member] * -1 }}</span>
+                        {% else %}
+                            <span class="settle-zero">✔ Settled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- FINAL SETTLEMENT -->
+    <div class="section-title">Final Settlement</div>
+
+    {% if settlements %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>Arrow</th>
+                        <th>To</th>
+                        <th>Amount to Pay</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in settlements %}
+                    <tr>
+                        <td><span class="badge badge-orange">{{ item.from }}</span></td>
+                        <td style="font-size:18px;">→</td>
+                        <td><span class="badge badge-green">{{ item.to }}</span></td>
+                        <td><strong style="color:var(--primary);font-size:16px;">₹{{ item.amount }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="success-message">🎉 All members are already settled! No payments needed.</div>
+    {% endif %}
+
+    <div class="button-group">
+        <a href="{{ url_for('add_trip_expense', trip_id=trip._id) }}" class="btn">+ Add More Expenses</a>
+        <a href="{{ url_for('trip_details') }}" class="btn secondary-btn">← Back to Trips</a>
+        <a href="{{ url_for('dashboard') }}" class="btn secondary-btn">Dashboard</a>
+    </div>
+
+</div>
+{% endblock %}

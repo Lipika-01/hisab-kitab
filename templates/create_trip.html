@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Create Trip — HisabKitab{% endblock %}
+
+{% block head %}
+<script>
+    const CURRENT_USERNAME = "{{ session['username'] }}";
+</script>
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:620px;">
+
+    <div class="greeting">✈️ Plan a new trip</div>
+    <h1 class="page-title">Create Trip</h1>
+    <p class="page-subtitle">Hello, <strong>{{ name }}</strong> — set up your group trip and add members.</p>
+
+    <form method="POST" id="tripForm">
+
+        <div class="form-group">
+            <label class="form-label">Trip Name</label>
+            <input type="text" name="trip_name" placeholder="e.g. Goa 2025, Manali Winter" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Number of People (including you)</label>
+            <input
+                type="number"
+                name="member_count"
+                id="member_count"
+                placeholder="e.g. 4"
+                min="1"
+                required
+            >
+        </div>
+
+        <button type="button" class="btn secondary-btn" onclick="generateMemberFields()" style="align-self:flex-start;">
+            Generate Member Fields
+        </button>
+
+        <div class="form-group" style="margin-top:4px;">
+            <label class="form-label">Member Usernames</label>
+            <div id="memberFields">
+                <input
+                    type="text"
+                    name="member_1"
+                    value="{{ session['username'] }}"
+                    readonly
+                    class="member-input"
+                >
+            </div>
+            <p style="font-size:12px;color:var(--text-light);margin-top:6px;">
+                Your username is added automatically. Enter usernames of other members.
+            </p>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top:8px;">Create Trip</button>
+
+    </form>
+
+    {% if message %}
+        <div class="success-message">✔ {{ message }}</div>
+    {% endif %}
+
+    {% if error %}
+        <div class="error-message">⚠ {{ error }}</div>
+    {% endif %}
+
+    <div class="button-group">
+        <a href="{{ url_for('dashboard') }}" class="btn secondary-btn">← Back to Dashboard</a>
+        <a href="{{ url_for('trip_details') }}" class="btn">View My Trips</a>
+    </div>
+
+</div>
+{% endblock %}

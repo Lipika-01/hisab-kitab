@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}HisabKitab — Kharcha likho, hisaab clear karo{% endblock %}
+{% block content %}
+<div class="container" style="max-width:860px;">
+    <div class="hero-section">
+        <h1 class="hero-title">
+            HisabKitab
+        </h1>
+        <p class="hero-tagline">Kharcha likho, hisaab clear karo.</p>
+        <div class="hero-cta">
+            <a href="{{ url_for('signup') }}" class="btn">Signup</a>
+            <a href="{{ url_for('login') }}" class="btn secondary-btn">Login</a>
+        </div>
+    </div>
+    <hr class="divider">
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">💸</div>
+            <h3>Daily Expense Tracker</h3>
+            <p>Daily expenses add kijiye aur total spending easily track kijiye.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✈️</div>
+            <h3>Trip Expense Splitter</h3>
+            <p>Trip create karke members add kijiye aur shared expenses manage kijiye.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3>Final Settlement</h3>
+            <p>Kaun kis ko kitna dega, app automatically calculate karega.</p>
+        </div>
+    </div>
+    <hr class="divider">
+    <div style="text-align:center; padding-top:10px;">
+        <p style="color:var(--text-muted); font-size:14px;">
+            Simple expense tracking for personal and group use.
+        </p>
+    </div>
+</div>
+{% endblock %}
