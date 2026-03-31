@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container-narrow">
+        <h1 class="page-title" style="text-align:center;">Create Account</h1>
+        <p class="page-subtitle" style="text-align:center;">Join HisabKitab and start splitting expenses fairly.</p>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="name" placeholder="e.g. Lipika Bag" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="username" placeholder="Pick a unique username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" placeholder="Create a password" required>
+            </div>
+            <button type="submit" class="btn" style="width:100%;">Create Account</button>
+        </form>
+
+        <div id="message"></div>
+
+        <p class="bottom-text">
+            Already have an account? <a href="login.html">Login here</a>
+        </p>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+document.getElementById("signupForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const payload = {
+        name: document.getElementById("name").value,
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value
+    };
+
+    const res = await fetch(`${API_BASE}/api/signup`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const messageDiv = document.getElementById("message");
+
+    if (data.success) {
+        messageDiv.innerHTML = `<div class="success-message">${data.message}</div>`;
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 1000);
+    } else {
+        messageDiv.innerHTML = `<div class="error-message">${data.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

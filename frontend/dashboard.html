@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body onload="requireLogin(); loadDashboard();">
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container" style="max-width:720px;">
+        <div class="greeting" id="greetingText">👋 Hello!</div>
+        <h1 class="page-title">Your Dashboard</h1>
+        <p class="page-subtitle">What would you like to do today?</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💸</div>
+                <h3>Daily Expenses</h3>
+                <p>Log your personal spending by category and track your daily total.</p>
+                <a href="add_expense.html" class="btn">Open Tracker</a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✈️</div>
+                <h3>Create a Trip</h3>
+                <p>Plan a new group trip, add members, and start splitting expenses together.</p>
+                <a href="create_trip.html" class="btn secondary-btn">New Trip</a>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>My Trips</h3>
+                <p>View all trips you're part of, add expenses, and see settlement summaries.</p>
+                <a href="trip_details.html" class="btn secondary-btn">View Trips</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+function loadDashboard() {
+    const name = localStorage.getItem("name");
+    const username = localStorage.getItem("username");
+
+    if (name && username) {
+        document.getElementById("greetingText").textContent = `👋 Hello, ${name}!`;
+    }
+}
+</script>
+</body>
+</html>

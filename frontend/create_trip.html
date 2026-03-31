@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Trip — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body onload="requireLogin();">
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container" style="max-width:620px;">
+        <div class="greeting">✈️ Plan a new trip</div>
+        <h1 class="page-title">Create Trip</h1>
+        <p class="page-subtitle">Set up your group trip and add members.</p>
+
+        <form id="tripForm">
+            <div class="form-group">
+                <label class="form-label">Trip Name</label>
+                <input type="text" id="trip_name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Number of People (including you)</label>
+                <input type="number" id="member_count" min="1" required>
+            </div>
+
+            <button type="button" class="btn secondary-btn" onclick="generateMemberFields()">Generate Member Fields</button>
+
+            <div class="form-group">
+                <label class="form-label">Member Usernames</label>
+                <div id="memberFields"></div>
+            </div>
+
+            <button type="submit" class="btn">Create Trip</button>
+        </form>
+
+        <div id="message"></div>
+
+        <div class="button-group">
+            <a href="dashboard.html" class="btn secondary-btn">← Back to Dashboard</a>
+            <a href="trip_details.html" class="btn">View My Trips</a>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+document.getElementById("tripForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const currentUsername = localStorage.getItem("username");
+    const count = parseInt(document.getElementById("member_count").value);
+    const members = [];
+
+    for (let i = 1; i <= count; i++) {
+        const input = document.querySelector(`[name="member_${i}"]`);
+        if (input && input.value.trim()) {
+            members.push(input.value.trim());
+        }
+    }
+
+    const payload = {
+        current_username: currentUsername,
+        trip_name: document.getElementById("trip_name").value,
+        members: members
+    };
+
+    const res = await fetch(`${API_BASE}/api/create-trip`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById("message").innerHTML = `<div class="success-message">${data.message}</div>`;
+        document.getElementById("tripForm").reset();
+        document.getElementById("memberFields").innerHTML = "";
+    } else {
+        document.getElementById("message").innerHTML = `<div class="error-message">${data.message}</div>`;
+    }
+});
+</script>
+</body>
+</html>

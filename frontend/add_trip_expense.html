@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Trip Expense — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body onload="requireLogin(); loadTripExpenses();">
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container">
+        <div class="greeting">✈️ Trip Expense</div>
+        <h1 class="page-title" id="tripTitle">Add Trip Expense</h1>
+        <p class="page-subtitle">Add and manage expenses for this trip.</p>
+
+        <form id="tripExpenseForm">
+            <div class="form-group">
+                <label class="form-label">Expense Title</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Amount (₹)</label>
+                <input type="number" id="amount" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Paid By</label>
+                <select id="paid_by" required></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date</label>
+                <input type="date" id="date" required>
+            </div>
+            <button type="submit" class="btn">Add Trip Expense</button>
+        </form>
+
+        <div id="message"></div>
+        <hr class="divider">
+
+        <div class="section-title">Existing Trip Expenses</div>
+        <div id="tripExpenseContainer"></div>
+
+        <div class="button-group">
+            <a id="summaryBtn" href="#" class="btn">View Trip Summary</a>
+            <a href="trip_details.html" class="btn secondary-btn">← Back to Trips</a>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+const tripId = getQueryParam("trip_id");
+
+document.getElementById("summaryBtn").href = `view_trip_expenses.html?trip_id=${tripId}`;
+
+document.getElementById("tripExpenseForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const current_username = localStorage.getItem("username");
+
+    const payload = {
+        current_username,
+        title: document.getElementById("title").value,
+        amount: document.getElementById("amount").value,
+        paid_by: document.getElementById("paid_by").value,
+        date: document.getElementById("date").value
+    };
+
+    const res = await fetch(`${API_BASE}/api/add-trip-expense/${tripId}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        document.getElementById("message").innerHTML = `<div class="success-message">${data.message}</div>`;
+        document.getElementById("tripExpenseForm").reset();
+        loadTripExpenses();
+    } else {
+        document.getElementById("message").innerHTML = `<div class="error-message">${data.message}</div>`;
+    }
+});
+
+async function loadTripExpenses() {
+    const username = localStorage.getItem("username");
+    const res = await fetch(`${API_BASE}/api/trip-expenses/${tripId}/${username}`);
+    const data = await res.json();
+
+    if (!data.success) {
+        document.getElementById("tripExpenseContainer").innerHTML = `<div class="error-message">${data.message}</div>`;
+        return;
+    }
+
+    document.getElementById("tripTitle").textContent = data.trip.trip_name;
+
+    const paidBySelect = document.getElementById("paid_by");
+    paidBySelect.innerHTML = `<option value="">Select who paid</option>`;
+    data.trip.members.forEach(member => {
+        paidBySelect.innerHTML += `<option value="${member}">${member}</option>`;
+    });
+
+    const container = document.getElementById("tripExpenseContainer");
+
+    if (!data.expenses || data.expenses.length === 0) {
+        container.innerHTML = `<div class="empty-state">No trip expenses added yet.</div>`;
+        return;
+    }
+
+    let rows = data.expenses.map(expense => `
+        <tr>
+            <td style="text-align:left;font-weight:600;">${expense.title}</td>
+            <td>₹${expense.amount}</td>
+            <td>${expense.paid_by}</td>
+            <td>${expense.date}</td>
+            <td>${expense.added_by}</td>
+            <td><button class="small-btn danger-small-btn" onclick="deleteTripExpense('${expense._id}')">Delete</button></td>
+        </tr>
+    `).join("");
+
+    container.innerHTML = `
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Paid By</th>
+                        <th>Date</th>
+                        <th>Added By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+async function deleteTripExpense(expenseId) {
+    const username = localStorage.getItem("username");
+
+    if (!confirm("Delete this trip expense?")) return;
+
+    const res = await fetch(`${API_BASE}/api/delete-trip-expense/${expenseId}/${tripId}/${username}`, {
+        method: "DELETE"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        loadTripExpenses();
+    } else {
+        alert(data.message);
+    }
+}
+</script>
+</body>
+</html>

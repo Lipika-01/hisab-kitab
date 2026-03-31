@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trip Summary — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body onload="requireLogin(); loadTripSummary();">
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container">
+        <div class="greeting">⚖️ Settlement Summary</div>
+        <h1 class="page-title" id="tripName">Trip Summary</h1>
+        <p class="page-subtitle">Full breakdown — who paid, who owes, how to settle.</p>
+
+        <div id="summaryContent"></div>
+
+        <div class="button-group">
+            <a id="addExpenseBtn" href="#" class="btn">+ Add More Expenses</a>
+            <a href="trip_details.html" class="btn secondary-btn">← Back to Trips</a>
+            <a href="dashboard.html" class="btn secondary-btn">Dashboard</a>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+const tripSummaryId = getQueryParam("trip_id");
+document.getElementById("addExpenseBtn").href = `add_trip_expense.html?trip_id=${tripSummaryId}`;
+
+async function loadTripSummary() {
+    const username = localStorage.getItem("username");
+    const res = await fetch(`${API_BASE}/api/trip-summary/${tripSummaryId}/${username}`);
+    const data = await res.json();
+
+    const container = document.getElementById("summaryContent");
+
+    if (!data.success) {
+        container.innerHTML = `<div class="error-message">${data.message}</div>`;
+        return;
+    }
+
+    document.getElementById("tripName").textContent = data.trip.trip_name;
+
+    let expenseRows = data.expenses.map(expense => `
+        <tr>
+            <td style="text-align:left;font-weight:600;">${expense.title}</td>
+            <td>₹${expense.amount}</td>
+            <td>${expense.paid_by}</td>
+            <td>${expense.date}</td>
+        </tr>
+    `).join("");
+
+    let memberRows = data.trip.members.map(member => `
+        <tr>
+            <td style="font-weight:700;">${member}</td>
+            <td>₹${data.member_totals[member]}</td>
+            <td>₹${data.member_share[member]}</td>
+            <td>
+                ${data.balances[member] > 0
+                    ? `<span class="settle-positive">Gets ₹${data.balances[member]}</span>`
+                    : data.balances[member] < 0
+                    ? `<span class="settle-negative">Gives ₹${Math.abs(data.balances[member])}</span>`
+                    : `<span class="settle-zero">Settled</span>`
+                }
+            </td>
+        </tr>
+    `).join("");
+
+    let settlementRows = data.settlements.map(item => `
+        <tr>
+            <td>${item.from}</td>
+            <td>→</td>
+            <td>${item.to}</td>
+            <td>₹${item.amount}</td>
+        </tr>
+    `).join("");
+
+    container.innerHTML = `
+        <div class="stat-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Kharcha</div>
+                <div class="stat-value">₹${data.total_expense}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Members</div>
+                <div class="stat-value">${data.trip.member_count}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Expenses Logged</div>
+                <div class="stat-value">${data.expenses.length}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Per Person Share</div>
+                <div class="stat-value">₹${(data.total_expense / data.trip.member_count).toFixed(2)}</div>
+            </div>
+        </div>
+
+        <div class="section-title">All Trip Expenses</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Paid By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>${expenseRows}</tbody>
+            </table>
+        </div>
+
+        <div class="section-title">Member-wise Breakdown</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Total Paid</th>
+                        <th>Fair Share</th>
+                        <th>Balance</th>
+                    </tr>
+                </thead>
+                <tbody>${memberRows}</tbody>
+            </table>
+        </div>
+
+        <div class="section-title">Final Settlement</div>
+        ${
+            data.settlements.length > 0
+            ? `
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Arrow</th>
+                            <th>To</th>
+                            <th>Amount to Pay</th>
+                        </tr>
+                    </thead>
+                    <tbody>${settlementRows}</tbody>
+                </table>
+            </div>
+            `
+            : `<div class="success-message">All members are already settled!</div>`
+        }
+    `;
+}
+</script>
+</body>
+</html>

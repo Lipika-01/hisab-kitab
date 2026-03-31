@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Trips — HisabKitab</title>
+    <link rel="stylesheet" href="./static/css/style.css">
+    <script src="./static/js/script.js" defer></script>
+</head>
+<body onload="requireLogin(); loadTrips();">
+<header class="site-header">
+    <a href="index.html" class="header-logo">
+        <div class="header-logo-icon">HK</div>
+        <span class="header-logo-text">HisabKitab</span>
+    </a>
+    <nav class="header-nav">
+        <span id="headerUser" class="header-user"></span>
+        <div id="authButtons"></div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container">
+        <div class="greeting">📋 All your trips</div>
+        <h1 class="page-title">My Trips</h1>
+        <p class="page-subtitle">Trips you created or are a member of.</p>
+
+        <div id="tripContainer"></div>
+
+        <div class="button-group">
+            <a href="create_trip.html" class="btn">+ Create New Trip</a>
+            <a href="dashboard.html" class="btn secondary-btn">← Dashboard</a>
+        </div>
+    </div>
+</main>
+
+<footer class="site-footer">
+    <p>&copy; 2025 <strong>HisabKitab</strong> — Kharcha likho, hisaab clear karo.</p>
+</footer>
+
+<script>
+async function loadTrips() {
+    const username = localStorage.getItem("username");
+    const res = await fetch(`${API_BASE}/api/trips/${username}`);
+    const data = await res.json();
+
+    const container = document.getElementById("tripContainer");
+
+    if (!data.trips || data.trips.length === 0) {
+        container.innerHTML = `<div class="empty-state">No trips yet. Create your first group trip!</div>`;
+        return;
+    }
+
+    let rows = data.trips.map(trip => `
+        <tr>
+            <td style="font-weight:700;text-align:left;">${trip.trip_name}</td>
+            <td>${trip.created_by === username ? "You" : trip.created_by}</td>
+            <td>${trip.members.map(member => `<span class="badge badge-gray" style="margin:2px;">${member}</span>`).join(" ")}</td>
+            <td>${trip.member_count}</td>
+            <td>
+                <a href="add_trip_expense.html?trip_id=${trip._id}" class="small-btn">Add Expense</a>
+                <a href="view_trip_expenses.html?trip_id=${trip._id}" class="small-btn secondary-small-btn">Summary</a>
+                ${trip.created_by === username ? `<button class="small-btn danger-small-btn" onclick="deleteTrip('${trip._id}')">Delete</button>` : ""}
+            </td>
+        </tr>
+    `).join("");
+
+    container.innerHTML = `
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trip Name</th>
+                        <th>Created By</th>
+                        <th>Members</th>
+                        <th>Total Members</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+async function deleteTrip(tripId) {
+    const username = localStorage.getItem("username");
+
+    if (!confirm("Delete this trip and all its expenses?")) return;
+
+    const res = await fetch(`${API_BASE}/api/delete-trip/${tripId}/${username}`, {
+        method: "DELETE"
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        loadTrips();
+    } else {
+        alert(data.message);
+    }
+}
+</script>
+</body>
+</html>
